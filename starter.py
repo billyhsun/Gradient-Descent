@@ -89,10 +89,10 @@ def grad_descent(W, b, trainingData, trainingLabels, alpha, iterations, reg, EPS
 
         if(lossType == "MSE"):
             loss = MSE(W_new, b_new, trainingData, trainingLabels, reg)
-            print(loss)
+            #print(loss)
         else:
             loss = crossEntropyLoss(W_new, b_new, trainingData, trainingLabels, reg)
-            print(loss)
+            #print(loss)
 
         losses.append(loss)
 
@@ -106,9 +106,30 @@ def grad_descent(W, b, trainingData, trainingLabels, alpha, iterations, reg, EPS
 
 
 def buildGraph(beta1=None, beta2=None, epsilon=None, lossType=None, learning_rate=None):
+    tf.set_random_seed(421)
     W = tf.Variable(tf.truncated_normal(stddev=0.5), name='weights')
-    b = tf.Variable(tf.truncated_normal(stddev=0.5), name='weights')
-    pass
+    b = tf.Variable(tf.truncated_normal(stddev=0.5), name='biases')
+
+    y = tf.placeholder(tf.float32, name='y')
+    y_predicted = tf.matmul(X,W) + b
+
+    l = tf.placeholder(tf.float32, name='lambda')
+    x = tf.placeholder(tf.float32, name='x')
+
+    optimizer = tf.train.GradientDescentOptimizer(learning_rate = 0.001)
+    regularizer = tf.nn.l2loss(weights)
+
+    if(lossType=="MSE"):
+        MSE = tf.reduce_mean(tf.mean_squared_error(labels=y, predictions=y_predicted) + epsilon*regularizer,name='cross_entropy_error')
+        train = optimizer.minimize(loss=MSE)
+    elif(lossType=="CE"):
+        CE = tf.reduce_mean(tf.sigmoid_cross_entropy() + epsilon*regularizer,name='cross_entropy_error')
+        train = optimizer.minimize(loss=CE)
+    else:
+        print("Invalid loss function")
+        return
+
+    #train = optimizer.minimize(loss=)
 
 
 def solveLeastSquares(W, b, x, y):

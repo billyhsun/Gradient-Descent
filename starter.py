@@ -34,29 +34,18 @@ def gradMSE(W, b, x, y, reg):
     x = np.reshape(x, (x.shape[0], -1))
     N = y.shape[0]
     dw = (1/N)*((((x@W).T)@x).T + (((b-y).T)@x).T) + reg * W
-    db = np.sum((1/N)*(x@W + 2*(b-y)))
+    db = np.sum((1/N)*(x@W + (b-y)))
     return dw, db
 
 
 def crossEntropyLoss(W, b, x, y, reg):
     x = np.reshape(x, (x.shape[0], -1))
     N = y.shape[0]
-    a = x@W+b
-    b = sigmoid(a)
-    c = np.log(b)
-    sum = 0
-    for i in range(N):
-        sum += -1*y[i]*np.log(sigmoid(W.T@x[i])) - (1-y[i])*np.log(1 - sigmoid(W.T@x[i]))
-    sum = sum/N
-    sum = sum + (reg/2) * (np.linalg.norm(W))**2
-    return sum
-    #print("{}, {}, {}".format(a[0], b[0], c[0]))
-    #return (1/N)*tf.sum(-1*(y.T)@tf.log(tf.sigmoid(x@W + b)) - ((1-y).T)@tf.log(1-tf.sigmoid(x@W + b)))
-    #+ (reg/2)*(np.linalg.norm(W))**2
+    loss = (1/N)*(-1*y * np.log(sigmoid(x@W + b)) - (1-y)*np.log(1-sigmoid(x@W+b)))
+    loss = np.sum(loss) + (reg/2) * (np.linalg.norm(W))**2
+    return loss
 
 def sigmoid(x):
-    #print(np.exp(-1*x))
-    #print(1/(1 + np.exp(-x)))
     return 1.0/(1.0 + np.exp(-x))
 
 def gradCE(W, b, x, y, reg):
@@ -96,7 +85,7 @@ def grad_descent(W, b, trainingData, trainingLabels, alpha, iterations, reg, EPS
 
         losses.append(loss)
 
-        if((np.linalg.norm(W_new - W_old)) < EPS):
+        if(np.sqrt(np.linalg.norm(W_new - W_old)**2 + np.linalg.norm(b_new - b_old)**2) < EPS):
             return W_new, b_new, losses
 
         epoch = epoch + 1
@@ -147,7 +136,8 @@ if __name__ == "__main__":
     b_val = np.random.rand(validData.shape[0],1)
     b_test = np.random.rand(testData.shape[0],1)
 
-    W_train, b_train, loss_train = grad_descent(W, b_train, trainData, trainTarget, 0.0001, 5000, 0, 1e-7, "CE")
+    print("{}    {}".format(MSE()))
+    #W_train, b_train, loss_train = grad_descent(W, b_train, trainData, trainTarget, 0.0001, 5000, 0, 1e-7, "CE")
     #W_val, b_val, loss_val = grad_descent(W, b_val, validData, validTarget, 0.000001, 1000, 0, 0.3)
 
     #W_test, b_test, loss_test = grad_descent(W, b_test, testData, testTarget, 0.000001, 1000, 0, 0.3)
@@ -158,13 +148,13 @@ if __name__ == "__main__":
     #plt.plot(np.arange(len(loss_train)), loss_train)
 
     #x = np.arange(10)
-    fig = plt.figure()
+    '''fig = plt.figure()
     plt.plot(loss_train)
     plt.title('Training loss')
     plt.xlabel('Epoch')
     plt.ylabel('Training Loss')
     plt.show()
-    fig.savefig('plots/train.png')
+    fig.savefig('plots/train.png')'''
 '''
     fig = plt.figure()
     plt.plot(loss_val)

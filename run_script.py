@@ -1,4 +1,8 @@
 from starter import *
+from starter_test import *
+
+
+
 
 trainData, validData, testData, trainTarget, validTarget, testTarget = loadData()
 
@@ -6,7 +10,29 @@ W = np.zeros((784, 1))
 b_train = np.zeros((trainData.shape[0],1))
 b_val = np.zeros((validData.shape[0],1))
 b_test = np.zeros((testData.shape[0],1))
+'''trainData2 = np.reshape(trainData, (trainData.shape[0], -1))
+print("{}    {}\n".format(MSE(W, b_train, trainData, trainTarget, 0.1),
+MSE_test(W, b_train, trainData2, trainTarget, 0.1)))
 
+print("{}    {}\n".format(crossEntropyLoss(W, b_train, trainData, trainTarget, 0.1),
+crossEntropyLoss_test(W, b_train, trainData2, trainTarget, 0.1)))
+
+dw1, db1 = gradMSE(W, b_train, trainData, trainTarget, 0.5)
+dw2, db2 = gradMSE_test(W, b_train, trainData2, trainTarget, 0.5)
+print(np.linalg.norm(dw1-dw2))
+print(db1-np.sum(db2))
+#print("{}    {}\n".format(gradMSE(W, b_train, trainData, trainTarget, 0.1),
+#radMSE_test(W, b_train, trainData2, trainTarget, 0.1)))
+
+dw1, db1 = gradCE(W, b_train, trainData, trainTarget, 0.5)
+dw2, db2 = gradCE_test(W, b_train, trainData2, trainTarget, 0.5)
+print(np.linalg.norm(dw1-dw2))
+print(db1-np.sum(db2))
+
+#print("{}    {}\n".format(gradCE(W, b_train, trainData, trainTarget, 0.1),
+#gradCE_test(W, b_train, trainData2, trainTarget, 0.1)))
+
+'''
 # Part 1.3
 
 alpha = [0.005, 0.001, 0.0001]

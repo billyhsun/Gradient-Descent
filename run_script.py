@@ -1,6 +1,4 @@
 from starter import *
-from starter_test import *
-from Main import *
 import time
 
 
@@ -13,20 +11,14 @@ testData = testData.reshape(-1, 784)
 
 iterations = 5000
 reg = 0
-EPS=1e-7
-'''
-
+EPS = 1e-7
 
 
 # Part 1.3
-
 alpha = [0.005, 0.001, 0.0001]
-
-f=open("results.txt","w+")
-
+f=open("results.txt", "w+")
 f.write("Part 1.3 \n\n")
-'''
-'''
+
 for a in alpha:
         t = time.time()
         W, b, weights, biases = grad_descent(W, b_train, trainData, trainTarget, a, iterations, 0, EPS, "MSE")
@@ -34,7 +26,6 @@ for a in alpha:
         fig = plt.figure()
         losses_train, losses_val, losses_test, train_acc, val_acc, test_acc = calcLossesAcc(W, b, weights, biases, trainData, validData,
          testData, trainTarget, validTarget, testTarget, 0, "MSE")
-
         plt.plot(losses_train, label='train')
         plt.plot(losses_val, label='validation')
         plt.plot(losses_test, label='test')
@@ -52,16 +43,12 @@ for a in alpha:
         print(r)
         f.write(s)
         f.write(r)
-'''
 
-'''
+
 # Part 1.4
-
 f.write("\nPart 1.4 \n\n")
-
 lambdas = [0.001, 0.1, 0.5]
 a = 0.005
-
 for l in lambdas:
         t = time.time()
         W, b, weights, biases = grad_descent(W, b_train, trainData, trainTarget, a, iterations, l, EPS, "MSE")
@@ -87,19 +74,16 @@ for l in lambdas:
         print(s)
         print(r)
 
-#Analytical
+# Analytical
 t_a = time.time()
 W_a, b_a = compareAnalytical(trainData, trainTarget)
 time_a = time.time()-t_a
-
 y_train = trainData.reshape(-1,784) @ W_a + b
 y_valid = validData.reshape(-1, 784) @ W_a + b
 y_test = testData.reshape(-1, 784) @ W_a + b
-
 train_acc = np.sum(np.equal(trainTarget.squeeze() > 0.5, y_train.squeeze() > 0.5)) / np.shape(trainTarget)[0]
 val_acc = np.sum(np.equal(validTarget.squeeze() > 0.5, y_valid.squeeze() > 0.5)) / np.shape(validTarget)[0]
 test_acc = np.sum(np.equal(testTarget.squeeze() > 0.5, y_test.squeeze() > 0.5)) / np.shape(testTarget)[0]
-
 s="time={} s\n train \t {}\n validation \t {}\n test \t {}\n".format(time_a,
         MSE(W_a, b_a, trainData, trainTarget, 0), MSE(W_a, b_a, validData, validTarget, 0), MSE(W_a, b_a, testData, testTarget, 0))
 r="train_acc \t {}\n validation_acc \t {}\n test_acc \t {}\n".format(train_acc, val_acc, test_acc)
@@ -107,10 +91,10 @@ f.write(s)
 f.write(r)
 print(s)
 print(r)
-'''
-'''
-# Part 2.2
 
+
+
+# Part 2.2
 f.write("\nPart 2.2 \n\n")
 l = 0
 a = 0.005
@@ -120,7 +104,6 @@ t = time.time() - t
 losses_train, losses_val, losses_test, train_acc, val_acc, test_acc = calcLossesAcc(W, b_train, weights, biases, trainData, validData,
          testData, trainTarget, validTarget, testTarget, l, "CE")
 train_accs, val_accs, test_accs = getAccs(weights, biases, trainData, validData, testData, trainTarget, validTarget, testTarget)
-
 fig = plt.figure()
 plt.plot(losses_train, label='train')
 plt.plot(losses_val, label='validation')
@@ -132,7 +115,6 @@ plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.legend(loc='best')
 fig.savefig('plots/p22_loss.png')
-
 fig = plt.figure()
 plt.plot(train_accs, label='train')
 plt.plot(val_accs, label='validation')
@@ -144,22 +126,19 @@ plt.xlabel('Epoch')
 plt.ylabel('Accuracy')
 plt.legend(loc='best')
 fig.savefig('plots/p22_acc.png')
-
-
 s = "a = {}  lambda={}   time={} s\n train \t {}\n validation \t {}\n test \t {}\n".format(a, l, training_time,losses_train[-1], losses_val[-1], losses_test[-1])
 r = "train_acc \t {}\n validation_acc \t {}\n test_acc \t {}\n".format(train_acc, val_acc, test_acc)
 print(s)
 print(r)
-'''
-'''
+
+
+
 # Part 2.3
 a = 0.005
 reg = 0
-
 W, b_train, weights, biases = grad_descent(W, b_train, trainData, trainTarget, a, iterations, 0, EPS, "MSE")
 losses_train, losses_val, losses_test, train_acc, val_acc, test_acc = calcLossesAcc(W, b_train, weights, biases, trainData, validData,
          testData, trainTarget, validTarget, testTarget, 0, "MSE")
-
 fig = plt.figure()
 plt.plot(losses_train, label='train')
 plt.plot(losses_val, label='validation')
@@ -175,11 +154,9 @@ s = "a = {}  lambda={} \n train \t {}\n validation \t {}\n test \t {}\n".format(
 r = "train_acc \t {}\n validation_acc \t {}\n test_acc \t {}\n".format(train_acc, val_acc, test_acc)
 print(s)
 print(r)
-
 W, b_train, weights, biases = grad_descent(W, b_train, trainData, trainTarget, a, iterations, 0, EPS, "CE")
 losses_train, losses_val, losses_test, train_acc, val_acc, test_acc = calcLossesAcc(W, b_train, weights, biases, trainData, validData,
          testData, trainTarget, validTarget, testTarget, 0, "CE")
-
 fig = plt.figure()
 plt.plot(losses_train, label='train')
 plt.plot(losses_val, label='validation')
@@ -196,11 +173,8 @@ r = "train_acc \t {}\n validation_acc \t {}\n test_acc \t {}\n".format(train_acc
 print(s)
 print(r)
 
-'''
-
 
 # Part 3.2
-'''
 batch_size = 500
 epochs = 700
 eval_every = 1
@@ -210,14 +184,10 @@ beta2 = 0.999
 regularization = 0
 learningrate = 0.001
 eps = 1e-8
-
-
 W, b, predMSE, y, loss, optimizer, x, reg, train_step, predSig = buildGraph(beta1=beta1, beta2=beta2, learning_rate=learningrate, lossType=lossfcn, epsilon=eps)
 sess = tf.Session()
-
 init = tf.global_variables_initializer()
 sess.run(init)
-
 trainlosslist = []
 testlosslist = []
 validlosslist = []
@@ -225,10 +195,8 @@ trainacclist = []
 testacclist = []
 relevantepoch = []
 validacclist = []
-
 xx = trainData
 yy = trainTarget
-
 t = 0
 for epoch in range(epochs):
         batches = iterate_minibatches(xx,yy, batch_size, shuffle=True)
@@ -246,29 +214,23 @@ for epoch in range(epochs):
                         training_preds = sess.run(predSig, feed_dict={x: xx})
                         testing_preds = sess.run(predSig, feed_dict = {x: testData})
                         validation_preds = sess.run(predSig, feed_dict={x: validData})
-
                 training_acc = round(((yy == (training_preds > 0.5)).sum() / yy.shape[0]),3)
                 testing_acc = round(((testTarget == (testing_preds > 0.5)).sum() / testTarget.shape[0]),3)
                 valid_acc = round(((validTarget == (validation_preds > 0.5)).sum() / validTarget.shape[0]),3)
-
                 train_loss = round(sess.run(loss, feed_dict={x: xx, y: yy.reshape(3500), reg: regularization}),3)
                 test_loss = round(sess.run(loss, feed_dict={x: testData, y: testTarget.reshape(testTarget.shape[0]), reg:regularization}),3)
                 valid_loss = round(sess.run(loss, feed_dict={x: validData, y: validTarget.reshape(validTarget.shape[0]), reg:regularization}),3)
-
                 trainlosslist.append(train_loss)
                 testlosslist.append(test_loss)
                 validlosslist.append(valid_loss)
-
                 trainacclist.append(training_acc)
                 testacclist.append(testing_acc)
                 validacclist.append(valid_acc)
-
                 relevantepoch.append(epoch)
                 t = t + 1
-                if(epoch==699):
+                if epoch == 699:
                         print(batch_size)
                         print("Epoch {} | Training Accuracy = {} | Testing Accuracy = {} | Training Loss = {} | Testing Loss = {} | Val Loss = {} | Val Acc = {}".format(epoch,training_acc, testing_acc, train_loss, test_loss,valid_loss,valid_acc))
-
 relevantepoch = np.array(relevantepoch)
 fig = plt.figure()
 plt.plot(relevantepoch, trainlosslist, label='Training Loss')
@@ -281,7 +243,6 @@ plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.legend(loc='best')
 fig.savefig('plots/p32_sgd_loss.png')
-
 fig = plt.figure()
 plt.plot(relevantepoch, trainacclist, label='Training Accuracy')
 plt.plot(relevantepoch, validacclist, label = 'Validation Accuracy')
@@ -293,7 +254,7 @@ plt.xlabel('Epoch')
 plt.ylabel('Accuracy')
 plt.legend(loc='best')
 fig.savefig('plots/p32_sgd_acc.png')
-'''
+
 #f.close()
 batch_size = 500
 epochs = 700
@@ -359,7 +320,7 @@ for eps in epss:
 
                         relevantepoch.append(epoch)
                         t = t + 1
-                        if (epoch==699):
+                        if epoch == 699:
                                 print()
                                 print("Epoch {} | Training Accuracy = {} | Testing Accuracy = {} | Training Loss = {} | Testing Loss = {} | Val Loss = {} | Val Acc = {} ".format(epoch,training_acc, testing_acc, train_loss, test_loss, valid_loss, valid_acc))
 
@@ -386,4 +347,3 @@ for eps in epss:
         plt.ylabel('Accuracy')
         plt.legend(loc='best')
         fig.savefig('plots/p34c_sgd_acc_eps_{}.png'.format(eps))
-

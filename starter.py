@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 
 
 def loadData():
@@ -43,7 +44,7 @@ def crossEntropyLoss(W, b, x, y, reg):
     return loss
 
 def sigmoid(x):
-    return 1.0/(1.0 + np.exp(-x))
+    return 1.0/(1.0 + np.exp(-1*x))
 
 def gradCE(W, b, x, y, reg):
     N = y.shape[0]
@@ -63,19 +64,17 @@ def grad_descent(W, b, trainingData, trainingLabels, alpha, iterations, reg, EPS
     while(epoch < iterations):
         if(lossType == "MSE"):
             gradW, gradB = gradMSE(W_old, b_old, trainingData, trainingLabels, reg)
-            #print(gradW)
         elif(lossType == "CE"):
             gradW, gradB = gradCE(W_old, b_old, trainingData, trainingLabels, reg)
-            #print(gradW)
         else:
             print("Invalid loss function")
             return
 
+        weights = np.concatenate((weights, W_old[np.newaxis,:,:]), axis=0)
+        biases = np.concatenate((biases, b_old[np.newaxis,:,:]), axis=0)
+
         W_new = W_old - alpha * gradW
         b_new = b_old - alpha * gradB
-        
-        weights = np.concatenate((weights, W_new[np.newaxis,:,:]), axis=0)
-        biases = np.concatenate((biases, b_new[np.newaxis,:,:]), axis=0)
 
         if(np.sqrt(np.linalg.norm(W_new - W_old)**2 + np.linalg.norm(b_new - b_old)**2) < EPS):
             return W_new, b_new, weights, biases
@@ -91,97 +90,71 @@ def buildGraph(beta1=None, beta2=None, epsilon=None, lossType=None, learning_rat
     tf.set_random_seed(421)
     W = tf.Variable(tf.truncated_normal(shape = [784, 1],
                                    mean = 0, stddev=0.5), name='weights')
-    b = tf.Variable(tf.truncated_normal(shape = [784, 1],
-                                   mean = 0, stddev=0.5), name='biases')
+    #b = tf.Variable(tf.truncated_normal(shape = [1, 1],
+    #                               mean = 0, stddev=0.5), name='biases')
 
+    b = tf.Variable(tf.zeros([1,1]), name='bias')
     x = tf.placeholder(tf.float32, shape = [None, 784], name="x")
     y = tf.placeholder(tf.float32, shape = [None], name="y")
     y_pred = tf.add(tf.matmul(x, W),b, name = "predMSE")
-    y_sig = tf.sigmoid(y_pred, name = "predsig")
+    y_sig = tf.sigmoid(y_pred, name = "predSig")
 
     l = tf.placeholder(tf.float32, name='lambda')
     reg = tf.placeholder(tf.float32, name='reg')
 
     if(lossType=="MSE"):
+        '''loss = tf.losses.mean_squared_error(
+            labels=tf.reshape(y, [tf.shape(y)[0],1]),
+            predictions=y_pred,
+        ) + tf.multiply(tf.reduce_sum(tf.square(W)), reg/2)'''
         loss = tf.losses.mean_squared_error(
             labels=tf.reshape(y, [tf.shape(y)[0],1]),
             predictions=y_pred,
         ) + tf.multiply(tf.reduce_sum(tf.square(W)), reg/2)
     elif(lossType=="CE"):
-        loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
+        '''loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
             labels = tf.reshape(y, [tf.shape(y)[0],1]),
             logits = y_pred,
-            name = "loss_fn")) + tf.multiply(tf.reduce_sum(tf.square(W)), reg/2, name = "reg_part")
+            name = "loss_fn")) + tf.multiply(tf.reduce_sum(tf.square(W)), reg/2, name = "reg_part")'''
+        loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
+        labels = tf.reshape(y, [tf.shape(y)[0],1]),
+        logits = y_pred,
+        name = "loss_fn")) + tf.multiply(tf.reduce_sum(tf.square(W)), reg/2, name = "reg_part")
+
     else:
         print("Invalid loss function")
         return
 
     optimizer =  tf.train.AdamOptimizer(learning_rate=learning_rate,
-                                                   beta1 = beta1,
-                                                   beta2 = beta2,
+                                                   #beta1 = beta1,
+                                                   #beta2 = beta2,
                                                    epsilon = epsilon
                                                    )
     train_step = optimizer.minimize(loss)
 
-def train_minibatch(opt_type, learning_rate, image_set, minibatch_size):
-    # Arrays for logging accuracy and loss
-    loss_log = np.zeros(len(image_set))
-    # Create optimizer
-    opt = opt_type(learning_rate)
-    #
-    # minibatch operations
-    #
-    # 0) Retrieve trainable variables
-    tvs = tf.trainable_variables()
-    # 1) Create placeholders for the accumulating gradients we'll be storing
-    accum_vars = [tf.Variable(tv.initialized_value(),
-                              trainable=False) for tv in tvs]
-    # 2) Operation to initialize accum_vars to zero
-    zero_ops = [tv.assign(tf.zeros_like(tv)) for tv in accum_vars]
-    # 3) Operation to compute the gradients for one minibatch
-    gvs = opt.compute_gradients(loss)
-    # 4) Operation to accumulate the gradients in accum_vars
-    accum_ops = [accum_vars[i].assign_add(gv[0]) for i, gv in enumerate(gvs)]
-    # 5) Operation to perform the update (apply gradients)
-    apply_ops = opt.apply_gradients([(accum_vars[i], tv) for i, tv
-                                     in enumerate(tf.trainable_variables())])
-    # Create session to execute ops
-    sess = tf.InteractiveSession()
-    # Necessary initializations
-    tf.set_random_seed(421)
-    tf.global_variables_initializer().run()
-    # Train loop
-    for i, batch in enumerate(image_set):
-        # Make sure gradients are set to 0 before entering minibatch loop
-        sess.run(zero_ops)
-        # Loop over minibatches and execute accumulate-gradient operation
-        for j in range(len(image_set) / minibatch_size):
-            sess.run(accum_ops,
-                     feed_dict={x: batch[0][j * minibatch_size:(j + 1) * minibatch_size],
-                                y_: batch[1][j * minibatch_size:(j + 1) * minibatch_size]})
+    return W, b, y_pred, y, loss, optimizer, x, reg, train_step, y_sig#, normal_MSE, reg_loss
 
-        # Done looping over minibatches. Now apply gradients.
-        sess.run(apply_ops)
+def iterate_minibatches(inputs, targets, batchsize, shuffle=False):
+    assert inputs.shape[0] == targets.shape[0]
+    if shuffle:
+        indices = np.arange(inputs.shape[0])
+        np.random.shuffle(indices)
+    for start_idx in range(0, inputs.shape[0] - batchsize + 1, batchsize):
+        if shuffle:
+            excerpt = indices[start_idx:start_idx + batchsize]
+        else:
+            excerpt = slice(start_idx, start_idx + batchsize)
+        yield inputs[excerpt], targets[excerpt]
 
-
-        loss_log[i] = sess.run(loss,
-                               feed_dict={x: mnist.test.images, y_: mnist.test.labels})
-
-        # print("in iteration {}".format(i), sess.run(accum_vars))
-    return loss_log
 
 
 def compareAnalytical(X, y):
-    X = np.concatenate((np.ones(3500, 1), X), axis=1)
-    t = time.time()
-
+    X = np.concatenate((np.ones((3500, 1)), X), axis=1)
     X_pinv = np.matmul(np.linalg.inv(np.matmul(X.T, X)), X.T)
     W = np.matmul(X_pinv, y)
     b = W[0]
     W_opt = W[1:]
-    time_analytical = time.time() - t
-
-    return W, b, time_analytical
+    return W_opt, b
 
 def calcLossesAcc(W, b, weights, biases, trainData, valData, testData, trainTarget, valTarget, testTarget, reg, lossType=None):
     losses_train = []
@@ -199,10 +172,17 @@ def calcLossesAcc(W, b, weights, biases, trainData, valData, testData, trainTarg
         else:
             print("Invalid loss type")
             return
-
-    y_train = trainData.reshape(-1,784) @ W + b
-    y_valid = valData.reshape(-1, 784) @ W + b
-    y_test = testData.reshape(-1, 784) @ W + b
+    if(lossType=="MSE"):
+        y_train = trainData.reshape(-1,784) @ W + b
+        y_valid = valData.reshape(-1, 784) @ W + b
+        y_test = testData.reshape(-1, 784) @ W + b
+    elif(lossType=="CE"):
+        y_train = sigmoid(trainData.reshape(-1,784) @ W + b)
+        y_valid = sigmoid(valData.reshape(-1, 784) @ W + b)
+        y_test = sigmoid(testData.reshape(-1, 784) @ W + b)
+    else:
+        print("Invalid loss type")
+        return
 
     train_acc = np.sum(np.equal(trainTarget.squeeze() > 0.5, y_train.squeeze() > 0.5)) / np.shape(trainTarget)[0]
     val_acc = np.sum(np.equal(valTarget.squeeze() > 0.5, y_valid.squeeze() > 0.5)) / np.shape(valTarget)[0]
@@ -210,6 +190,18 @@ def calcLossesAcc(W, b, weights, biases, trainData, valData, testData, trainTarg
 
     return losses_train, losses_val, losses_test, train_acc, val_acc, test_acc
 
+def getAccs(weights, biases, trainData, valData, testData, trainTarget, valTarget, testTarget):
+    train_accs = []
+    val_accs = []
+    test_accs = []
+    for i in range(weights.shape[0]):
+        y_train = trainData.reshape(-1,784) @ weights[i] + biases[i]
+        y_valid = valData.reshape(-1, 784) @ weights[i] + biases[i]
+        y_test = testData.reshape(-1, 784) @ weights[i] + biases[i]
+        train_accs.append(np.sum(np.equal(trainTarget.squeeze() > 0.5, y_train.squeeze() > 0.5)) / np.shape(trainTarget)[0])
+        val_accs.append(np.sum(np.equal(valTarget.squeeze() > 0.5, y_valid.squeeze() > 0.5)) / np.shape(valTarget)[0])
+        test_accs.append(np.sum(np.equal(testTarget.squeeze() > 0.5, y_test.squeeze() > 0.5)) / np.shape(testTarget)[0])
+    return train_accs, val_accs, test_accs
 
 if __name__ == "__main__":
     trainData, validData, testData, trainTarget, validTarget, testTarget = loadData()
